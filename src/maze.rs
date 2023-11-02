@@ -63,7 +63,7 @@ impl Maze {
                 let cell_size = (width - 2 * padding) / maze.width;
                 let mouse_icon = Pixmap::load_png("mouse.png").unwrap();
                 let cheese_icon = Pixmap::load_png("cheese.png").unwrap();
-                let pix = maze.print_image(cell_size, padding, |n| {
+                let pix = maze.print_image(cell_size, padding, true, |n| {
                     let mut paint = Paint::default();
                     paint.set_color_rgba8(u8::MAX, u8::MAX, u8::MAX, u8::MAX);
                     /*if n == *start {

@@ -54,7 +54,7 @@ pub fn sample_uniform<'s, A>(slice: &'s[A], rng: &mut ThreadRng) -> &'s A {
 fn main() {
     let mut rng = thread_rng();
     let command = cli::CommandBuilder::new()
-        .source(Source::unmasked_radial(6, 20))
+        .source(Source::mazefile("owo.maze"))
         .destination(Destination::image(800, 8, "output.png"))
         .build().unwrap();
 

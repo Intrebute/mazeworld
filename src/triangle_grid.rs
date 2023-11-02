@@ -16,7 +16,7 @@ pub struct TriangleGrid {
     pub height: usize,
 }
 
-impl TriangleGrid {
+/*impl TriangleGrid {
     pub fn adjacent_triangles(&self, row: usize, col: usize) -> impl Iterator<Item = NodeId> {
         let mut ns = vec![];
         ns.extend(col.checked_sub(1));
@@ -32,4 +32,4 @@ impl TriangleGrid {
     fn points_up(&self, row: usize, col: usize) -> bool {
         (row + col) % 2 == 0
     }
-}
+}*/

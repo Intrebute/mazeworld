@@ -251,7 +251,7 @@ impl MaskedGrid {
         }
     }
     
-    pub fn print_image(&self, cell_size: usize, padding: usize, paint_function: impl Fn(NodeId) -> Paint<'static>, icons: Vec<(NodeId, Pixmap)>) -> Pixmap {
+    pub fn print_image(&self, cell_size: usize, padding: usize, draw_walls: bool, paint_function: impl Fn(NodeId) -> Paint<'static>, icons: Vec<(NodeId, Pixmap)>) -> Pixmap {
         let image_width = self.width * cell_size + 2 * padding;
         let image_height = self.height * cell_size + 2 * padding;
         let mut pixmap = Pixmap::new(image_width as u32, image_height as u32).unwrap();
@@ -269,30 +269,6 @@ impl MaskedGrid {
             stroke.line_cap = LineCap::Round;
             stroke.line_join = LineJoin::Round;
             stroke
-        };
-
-        let path = {
-            let mut pb = PathBuilder::new();
-
-            for row in 0..=self.height {
-                for col in 0..=self.width {
-                    let top = (row * cell_size + padding) as f32;
-                    let bottom = ((row + 1) * cell_size + padding) as f32;
-                    let left = (col * cell_size + padding) as f32;
-                    let right = ((col + 1) * cell_size + padding) as f32;
-
-                    if self.is_h_wall(row, col) {
-                        pb.move_to(left, top);
-                        pb.line_to(right, top);
-                    }
-                    if self.is_v_wall(row, col) {
-                        pb.move_to(left, top);
-                        pb.line_to(left, bottom);
-                    }
-                }
-            }
-            
-            pb.finish().unwrap()
         };
 
         // Paint the interiors
@@ -331,12 +307,39 @@ impl MaskedGrid {
             }
         }
 
-        pixmap.stroke_path(&path, &black, &stroke, Transform::identity(), None);
+        if draw_walls {
+            let path = {
+                let mut pb = PathBuilder::new();
+    
+                for row in 0..=self.height {
+                    for col in 0..=self.width {
+                        let top = (row * cell_size + padding) as f32;
+                        let bottom = ((row + 1) * cell_size + padding) as f32;
+                        let left = (col * cell_size + padding) as f32;
+                        let right = ((col + 1) * cell_size + padding) as f32;
+    
+                        if self.is_h_wall(row, col) {
+                            pb.move_to(left, top);
+                            pb.line_to(right, top);
+                        }
+                        if self.is_v_wall(row, col) {
+                            pb.move_to(left, top);
+                            pb.line_to(left, bottom);
+                        }
+                    }
+                }
+                
+                pb.finish().unwrap()
+            };
+
+            pixmap.stroke_path(&path, &black, &stroke, Transform::identity(), None);
+        }
 
         return pixmap;
     }
 
-    pub fn print_image_distances(&self, cell_size: usize, padding: usize, start_node: NodeId, color_function: impl Fn(f64) -> Color) -> Pixmap {
+
+    pub fn print_image_distances(&self, cell_size: usize, padding: usize, start_node: NodeId, draw_walls: bool, color_function: impl Fn(f64) -> Color) -> Pixmap {
         let distances = DijkstraPad::new(&self.pool, start_node).perform();
         let max_finite_distance = distances.pool.payloads().map(|d| {
             match d {
@@ -346,13 +349,13 @@ impl MaskedGrid {
         }).max().unwrap_or(0) as f64;
 
         if max_finite_distance == 0.0 {
-            self.print_image(cell_size, padding, |_| {
+            self.print_image(cell_size, padding, draw_walls, |_| {
                 let mut p = Paint::default();
                 p.set_color_rgba8(u8::MAX, u8::MAX, u8::MAX, u8::MAX);
                 p
             }, vec![])
         } else {
-            self.print_image(cell_size, padding, |node_id| {
+            self.print_image(cell_size, padding, draw_walls, |node_id| {
                 let dist = distances.pool.get(node_id).payload.as_finite().unwrap_or(0) as f64;
                 let normalized_distance = dist / max_finite_distance;
                 let mut p = Paint::default();
@@ -469,6 +472,10 @@ impl MaskedGrid {
     fn east(b: u8) -> bool { (b & 0b0100) == 0b0100 }
     fn west(b: u8) -> bool { (b & 0b0010) == 0b0010 }
     fn south(b: u8) -> bool { (b & 0b0001) == 0b0001 }
+
+    pub fn sanitize_news_grid(news_grid: &mut HashMap<(usize, usize), u8>) {
+
+    }
 
     pub fn validate_news_grid(news_grid: &HashMap<(usize, usize), u8>) -> Result<(),NewsGridError> {
         for (&(row, col), &b) in news_grid.iter() {
