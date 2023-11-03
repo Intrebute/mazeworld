@@ -1,5 +1,6 @@
 use std::{collections::HashSet, ops::{Index, IndexMut}, fmt::Display};
 
+use partitions::{PartitionVec, partition_vec};
 use rand::{rngs::ThreadRng, distributions::Uniform, prelude::Distribution, Rng};
 
 use crate::{sample_uniform, dijkstra::DijkstraPad};
@@ -44,7 +45,7 @@ pub struct Pool<T> {
 impl<T> Display for Pool<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for n in &self.nodes {
-            write!(f, "{} -> ", n.id);
+            write!(f, "{} -> ", n.id)?;
             for neigh in self.neighborhood_of(n.id) {
                 if self.is_linked(n.id, neigh) {
                     write!(f, "[{}]", neigh.0)?;
@@ -207,6 +208,16 @@ impl<T> Pool<T> {
 
     /// Checks if the adjacency graph is connected.
     pub fn is_adjacently_connected(&self) -> bool {
+        let mut nodes_partitions: PartitionVec<()> = partition_vec![(); self.nodes.len()];
+        let node_count = self.nodes.len();
+        for (i, node) in self.nodes.iter().enumerate() {
+            println!("Visited {}/{} ({} %)", i, node_count, (i as f64 / node_count as f64) * 100.0);
+            for neighbor in node.adjacencies.iter() {
+                nodes_partitions.union(node.id.0, neighbor.0);
+            }
+        }
+        nodes_partitions.amount_of_sets() == 1
+        /*
         println!("Checking adjacently connected...");
         if let Some(start) = self.nodes.first() {
             let ids = self.nodes.iter().map(|n| n.id).collect::<HashSet<NodeId>>();
@@ -227,7 +238,7 @@ impl<T> Pool<T> {
             return ids == visited;
         } else {
             true
-        }
+        }*/
     }
 
     /// Links two adjacent nodes.
