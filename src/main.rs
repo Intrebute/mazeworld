@@ -1,6 +1,7 @@
 use std::fs::File;
 
 use cli::{Source, Destination};
+use indicatif::ProgressStyle;
 use masked_grid::MaskedGrid;
 use maze::{Maze, Algorithm};
 use rand::{rngs::ThreadRng, distributions::Uniform, prelude::Distribution, thread_rng};
@@ -45,11 +46,15 @@ pub fn sample_uniform<'s, A>(slice: &'s[A], rng: &mut ThreadRng) -> &'s A {
     &slice[Uniform::from(0..slice.len()).sample(rng)]
 }
 
+pub fn progress_style() -> ProgressStyle {
+    ProgressStyle::with_template("[{prefix}] {bar} {pos}/{len} [{msg}]").unwrap().progress_chars("#>-")
+}
+
 fn main() {
     let mut rng = thread_rng();
     let command = cli::CommandBuilder::new()
-        .source(Source::mazefile("owo.maze"))
-        .destination(Destination::image(800, 8, "output.png"))
+        .source(Source::mazefile("TitanSanitized.maze"))
+        .destination(Destination::image(9000, 8, "output.png"))
         .build().unwrap();
 
 

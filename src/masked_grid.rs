@@ -1,5 +1,6 @@
 use std::{collections::{HashSet, HashMap}, io::{self, Write, BufWriter, Read, BufReader}};
 
+use indicatif::ProgressBar;
 use rand::{rngs::ThreadRng, random};
 use tiny_skia::{Pixmap, Paint, LineJoin, Stroke, LineCap, PathBuilder, Rect, Transform, Color, BlendMode, PixmapPaint, FilterQuality};
 
@@ -244,9 +245,11 @@ impl MaskedGrid {
             stroke
         };
 
+        let pb = ProgressBar::new((self.width * self.height) as u64).with_style(crate::progress_style()).with_prefix("Painting Interiors");
         // Paint the interiors
         for row in 0..self.height {
             for col in 0..self.width {
+                pb.inc(1);
                 if !(self.mask)(row, col) {
                     continue;
                 }
@@ -279,13 +282,17 @@ impl MaskedGrid {
                 }
             }
         }
+        pb.finish_with_message("Done");
 
+        
         if draw_walls {
+            let progress = ProgressBar::new(((self.width + 1) * (self.height + 1)) as u64).with_style(crate::progress_style()).with_prefix("Drawing Walls");
             let path = {
                 let mut pb = PathBuilder::new();
     
                 for row in 0..=self.height {
                     for col in 0..=self.width {
+                        progress.inc(1);
                         let top = (row * cell_size + padding) as f32;
                         let bottom = ((row + 1) * cell_size + padding) as f32;
                         let left = (col * cell_size + padding) as f32;
@@ -302,7 +309,9 @@ impl MaskedGrid {
                     }
                 }
                 
+                progress.finish_with_message("Done");
                 pb.finish().unwrap()
+                
             };
 
             pixmap.stroke_path(&path, &black, &stroke, Transform::identity(), None);

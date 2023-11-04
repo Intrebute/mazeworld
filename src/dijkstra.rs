@@ -1,5 +1,7 @@
 use std::{collections::HashSet, fmt::Display};
 
+use indicatif::{ProgressBar, ProgressStyle};
+
 use crate::pool::{Pool, NodeId};
 
 
@@ -70,6 +72,9 @@ impl DijkstraPad {
     }
 
     pub fn perform(mut self) -> Distances {
+        let pb = {
+            ProgressBar::new(self.pool.nodes.len() as u64).with_style(crate::progress_style()).with_prefix("Performing Distances")
+        };
         let mut frontier: HashSet<NodeId> = HashSet::new();
         frontier.insert(self.start_node);
         while !frontier.is_empty() {
@@ -79,11 +84,13 @@ impl DijkstraPad {
                 let neighbors: HashSet<_> = self.pool.passages_of(*cell).into_iter().filter(|&c| self.pool.get(c).payload.is_none()).collect();
                 for neighbor in neighbors {
                     self.pool.get_mut(neighbor).payload = Some(curr_distance + 1);
+                    pb.inc(1);
                     new_frontier.insert(neighbor);
                 }
             }
             frontier = new_frontier;
         }
+        pb.finish_with_message("Done");
         let new_pool = self.pool.map_nodes(|n| n.payload.unwrap_or(Distance::Infinite));
         Distances {
             pool: new_pool,

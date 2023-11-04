@@ -209,7 +209,8 @@ impl<T> Pool<T> {
 
     /// Checks if the adjacency graph is connected.
     pub fn is_adjacently_connected(&self) -> bool {
-        let mut progress = ProgressBar::with_draw_target(Some(self.nodes.len() as u64), ProgressDrawTarget::stdout());
+        println!("HSAHSHADHASDA");
+        let progress = ProgressBar::new(self.nodes.len() as u64).with_style(crate::progress_style()).with_prefix("Checking adjacencies are connected");
         let mut nodes_partitions: PartitionVec<()> = partition_vec![(); self.nodes.len()];
         let node_count = self.nodes.len();
         for (i, node) in self.nodes.iter().enumerate() {
@@ -219,7 +220,7 @@ impl<T> Pool<T> {
             }
             progress.inc(1);
         }
-        progress.finish_and_clear();
+        progress.finish_with_message("Done");
         nodes_partitions.amount_of_sets() == 1
     }
 
