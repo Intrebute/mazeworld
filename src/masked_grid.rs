@@ -1,9 +1,9 @@
 use std::{collections::{HashSet, HashMap}, io::{self, Write, BufWriter, Read, BufReader}};
 
-use rand::{rngs::ThreadRng, distributions::Uniform, prelude::Distribution, Rng, random};
+use rand::{rngs::ThreadRng, random};
 use tiny_skia::{Pixmap, Paint, LineJoin, Stroke, LineCap, PathBuilder, Rect, Transform, Color, BlendMode, PixmapPaint, FilterQuality};
 
-use crate::{pool::{Pool, NodeId, Node}, sample_uniform, dijkstra::{DijkstraPad, Distance}, grid::Direction};
+use crate::{pool::{Pool, NodeId}, dijkstra::{DijkstraPad, Distance}, grid::Direction};
 
 
 
@@ -149,33 +149,6 @@ impl MaskedGrid {
     pub fn hunt_and_kill(&mut self, rng: &mut ThreadRng) {
         self.pool.hunt_and_kill(rng);
         return;
-
-        let mut visited: HashSet<NodeId> = HashSet::new();
-        if let Some(first) = self.pool.nodes.first() {
-            visited.insert(first.id);
-        } else {
-            return;
-        }
-
-        while let Some((mut current_cell, visited_root)) = self.scan_frontier(&visited) {
-            
-            self.pool.link_cells(current_cell, visited_root, true);
-            visited.insert(current_cell);
-            let mut walls: Vec<NodeId> = self.pool.walls_of(current_cell).into_iter().filter(|n| !visited.contains(n)).collect();
-            while !walls.is_empty() {
-                {
-                    let vl = visited.len();
-                    let tl = self.pool.nodes.len();
-                    println!("Visited {}/{} ({}%)", vl, tl, vl as f64 / tl as f64 * 100.0);
-                }
-                let next_cell = *sample_uniform(&walls, rng);
-                self.pool.link_cells(current_cell, next_cell, true);
-                current_cell = next_cell;
-                visited.insert(current_cell);
-                walls = self.pool.walls_of(current_cell).into_iter().filter(|n| !visited.contains(n)).collect();
-            }
-        }
-        
     }
 
     pub fn scan_frontier(&self, visited: &HashSet<NodeId>) -> Option<(NodeId, NodeId)> {
@@ -472,10 +445,6 @@ impl MaskedGrid {
     fn east(b: u8) -> bool { (b & 0b0100) == 0b0100 }
     fn west(b: u8) -> bool { (b & 0b0010) == 0b0010 }
     fn south(b: u8) -> bool { (b & 0b0001) == 0b0001 }
-
-    pub fn sanitize_news_grid(news_grid: &mut HashMap<(usize, usize), u8>) {
-
-    }
 
     pub fn validate_news_grid(news_grid: &HashMap<(usize, usize), u8>) -> Result<(),NewsGridError> {
         for (&(row, col), &b) in news_grid.iter() {

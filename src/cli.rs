@@ -1,8 +1,4 @@
-use std::path::{PathBuf, Path};
-
-use tiny_skia::Pixmap;
-
-
+use std::path::PathBuf;
 
 
 pub enum Source {

@@ -1,15 +1,10 @@
-use std::{collections::HashSet, time::Instant, io, fs::File};
+use std::fs::File;
 
-use cli::{Source, Destination, Command};
-use color_gradients::{fire_colors, trans_colors};
-use dijkstra::{Distances, DijkstraPad};
-use grid::BinaryTreeSettings;
-use lerp::multi_lerp;
+use cli::{Source, Destination};
 use masked_grid::MaskedGrid;
 use maze::{Maze, Algorithm};
-use polar_grid::{PolarGrid, RingProfile};
-use rand::{seq::SliceRandom, random, rngs::ThreadRng, distributions::Uniform, prelude::Distribution, thread_rng};
-use tiny_skia::{Paint, Color, Pixmap, PremultipliedColorU8};
+use rand::{rngs::ThreadRng, distributions::Uniform, prelude::Distribution, thread_rng};
+use tiny_skia::{Pixmap, PremultipliedColorU8};
 
 pub mod pool;
 pub mod grid;
@@ -25,9 +20,8 @@ pub mod maze;
 pub mod parsers;
 pub mod triangle_grid;
 
-use crate::{grid::FlatSquareGrid, polar_grid::RingPosition};
 
-fn disk_mask(width: usize, height: usize, radius_ratio: f64, row: usize, col: usize) -> bool {
+pub fn disk_mask(width: usize, height: usize, radius_ratio: f64, row: usize, col: usize) -> bool {
     let x = col as f64;
     let y = row as f64;
     let hc = height as f64 / 2.0;
@@ -38,7 +32,7 @@ fn disk_mask(width: usize, height: usize, radius_ratio: f64, row: usize, col: us
     return dist < hc.min(wc) * radius_ratio;
 }
 
-fn stripes_mask(width: usize, _height: usize, strip_width: usize, row: usize, col: usize) -> bool {
+pub fn stripes_mask(width: usize, _height: usize, strip_width: usize, row: usize, col: usize) -> bool {
     (width - row + col ) % (strip_width) < strip_width / 2
 }
 

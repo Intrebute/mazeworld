@@ -1,14 +1,13 @@
 use std::collections::HashSet;
 
 use rand::{
-    distributions::Uniform, prelude::Distribution, random, rngs::ThreadRng, seq::SliceRandom,
-    thread_rng, Rng,
+    random, rngs::ThreadRng, thread_rng, Rng,
 };
 use tiny_skia::{Color, LineCap, LineJoin, Paint, PathBuilder, Pixmap, Rect, Stroke, Transform};
 
 use crate::{
     dijkstra::{DijkstraPad, Distance},
-    pool::{NodeId, Pool, FrontierSearchResult},
+    pool::{NodeId, Pool},
     sample_uniform,
 };
 
@@ -287,32 +286,6 @@ impl FlatSquareGrid {
     pub fn hunt_and_kill(&mut self, rng: &mut ThreadRng) {
         self.node_pool.hunt_and_kill(rng);
         return;
-
-        
-        let mut visited: HashSet<NodeId> = HashSet::new();
-        visited.insert(self.node_pool.get_arbitrary_node_id());
-        while let FrontierSearchResult::Found { unvisited: mut current_cell, visited: visited_root } = self.scan_frontier(&visited) {
-            self.node_pool.link_cells(current_cell, visited_root, true);
-            visited.insert(current_cell);
-            let mut walls: Vec<NodeId> = self
-                .node_pool
-                .walls_of(current_cell)
-                .into_iter()
-                .filter(|n| !visited.contains(n))
-                .collect();
-            while !walls.is_empty() {
-                let next_cell = *sample_uniform(&walls, rng);
-                self.node_pool.link_cells(current_cell, next_cell, true);
-                current_cell = next_cell;
-                visited.insert(current_cell);
-                walls = self
-                    .node_pool
-                    .walls_of(current_cell)
-                    .into_iter()
-                    .filter(|n| !visited.contains(n))
-                    .collect();
-            }
-        }
     }
 
     pub fn recursive_backtracker(&mut self, rng: &mut ThreadRng) {
@@ -336,10 +309,6 @@ impl FlatSquareGrid {
                 visited.insert(next_cell);
             }
         }
-    }
-
-    fn scan_frontier(&self, visited: &HashSet<NodeId>) -> FrontierSearchResult {
-        self.node_pool.scan_frontier(visited)
     }
 
     fn take_out_of(max: usize, rng: &mut ThreadRng) -> usize {
@@ -414,13 +383,6 @@ impl FlatSquareGrid {
             paint
         };
 
-        let white_paint = {
-            let mut p = Paint::default();
-            p.set_color_rgba8(255, 255, 255, 255);
-            p.anti_alias = true;
-            p
-        };
-
         let stroke = {
             let mut stroke = Stroke::default();
             stroke.width = 3.0;
@@ -456,7 +418,7 @@ impl FlatSquareGrid {
                 let top = padding as f32;
                 let bottom = (cell_size + padding) as f32;
                 let left = (col * cell_size + padding) as f32;
-                let right = ((col + 1) * cell_size + padding) as f32;
+                let _right = ((col + 1) * cell_size + padding) as f32;
                 if !self.is_linked_at(0, col, 0, col - 1) {
                     pb.move_to(left, top);
                     pb.line_to(left, bottom);
@@ -466,7 +428,7 @@ impl FlatSquareGrid {
             // Do the south walls of the left strip
             for row in 1..self.height {
                 let top = (row * cell_size + padding) as f32;
-                let bottom = ((row + 1) * cell_size + padding) as f32;
+                let _bottom = ((row + 1) * cell_size + padding) as f32;
                 let left = padding as f32;
                 let right = (cell_size + padding) as f32;
                 if !self.is_linked_at(row, 0, row - 1, 0) {

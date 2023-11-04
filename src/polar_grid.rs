@@ -1,6 +1,6 @@
 use std::{f64::consts::PI, ops::Index, fmt::Display};
 
-use tiny_skia::{Pixmap, Paint, Stroke, LineCap, LineJoin, PathBuilder, Transform, FillRule, Path, Color};
+use tiny_skia::{Pixmap, Paint, Stroke, LineCap, LineJoin, PathBuilder, Transform, FillRule, Color};
 
 use crate::{pool::{Pool, NodeId}, geometry::{CartesianPoint, PolarPoint}, dijkstra::{DijkstraPad, Distance}};
 
@@ -324,8 +324,8 @@ impl PolarGrid {
                     let bc = CartesianPoint::from(arc.bottom_center * ring_radius);
                     let br = CartesianPoint::from(arc.bottom_right * ring_radius);
                     let tl = CartesianPoint::from(arc.top_left * ring_radius);
-                    let tc = CartesianPoint::from(arc.top_center * ring_radius);
-                    let tr = CartesianPoint::from(arc.top_right * ring_radius);
+                    let _tc = CartesianPoint::from(arc.top_center * ring_radius);
+                    let _tr = CartesianPoint::from(arc.top_right * ring_radius);
 
                     /*
                     let here = RingPosition{ ring, column };
@@ -499,7 +499,7 @@ mod tests {
     #[test]
     fn test_cw_cww() {
         let profile = RingProfile::new(6);
-        let center = RingPosition{ ring: 0, column: 0 };
+        let _center = RingPosition{ ring: 0, column: 0 };
         
         let ring1: Vec<RingPosition> = (0..profile.ring_cell_count(1)).map(|col| RingPosition{ ring: 1, column: col }).collect();
         for c in ring1 {

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use rand::{rngs::ThreadRng, seq::IteratorRandom};
 
-use crate::{pool::{NodeId, Pool}, sample_uniform};
+use crate::pool::{NodeId, Pool};
 
 use super::{FlatSquareGrid, Direction};
 
@@ -58,7 +58,7 @@ impl Walker {
         return RepeatedDirection::Never;
     }
 
-    fn next_step_at_direction(&self, grid: &FlatSquareGrid, direction: Direction) -> Option<NodeId> {
+    pub fn next_step_at_direction(&self, grid: &FlatSquareGrid, direction: Direction) -> Option<NodeId> {
         grid.get_by_id(self.final_node()).at_direction(direction)
     }
 

@@ -1,4 +1,4 @@
-use std::{collections::{HashSet, HashMap}, fmt::Display};
+use std::{collections::HashSet, fmt::Display};
 
 use crate::pool::{Pool, NodeId};
 

@@ -65,20 +65,19 @@ impl Maze {
                 let cheese_icon = Pixmap::load_png("cheese.png").unwrap();
                 let pix = maze.print_image(cell_size, padding, true, |n| {
                     let mut paint = Paint::default();
-                    paint.set_color_rgba8(u8::MAX, u8::MAX, u8::MAX, u8::MAX);
-                    /*if n == *start {
+                    if n == *start {
                         paint.set_color_rgba8(0, 38, u8::MAX, u8::MAX);
                     } else if n == *end {
                         paint.set_color_rgba8(u8::MAX, 106, 0, u8::MAX);
                     } else {
                         paint.set_color_rgba8(u8::MAX, u8::MAX, u8::MAX, u8::MAX);
-                    }*/
+                    }
                     paint
                 }, vec![(*start, mouse_icon), (*end, cheese_icon)]);
 
                 pix
             },
-            Maze::RadialMaze { maze, start, end } => {
+            Maze::RadialMaze { maze, start, .. } => {
                 let radius = (width - 2 * padding) / 2;
                 maze.print_image_distances(radius, padding, *start,
                     multi_lerp(color_gradients::fire_colors())
@@ -89,10 +88,10 @@ impl Maze {
 
     pub fn write_maze(&self, out: impl Write) -> Result<(), io::Error> {
         match self {
-            Maze::MaskedMaze { maze, start, end } => {
+            Maze::MaskedMaze { maze, .. } => {
                 maze.write_maze(out)
             },
-            Maze::RadialMaze { maze, start, end } => {
+            Maze::RadialMaze { maze: _maze, start: _start, end: _end } => {
                 todo!();
             },
         }

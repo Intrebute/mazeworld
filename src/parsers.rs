@@ -1,7 +1,6 @@
 use nom::IResult;
 use nom::bytes::complete;
 
-use crate::maze::Maze;
 
 
 

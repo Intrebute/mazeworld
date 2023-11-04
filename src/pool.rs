@@ -1,7 +1,8 @@
 use std::{collections::HashSet, ops::{Index, IndexMut}, fmt::Display};
 
+use indicatif::{ProgressBar, ProgressIterator, ProgressDrawTarget};
 use partitions::{PartitionVec, partition_vec};
-use rand::{rngs::ThreadRng, distributions::Uniform, prelude::Distribution, Rng};
+use rand::{rngs::ThreadRng, Rng};
 
 use crate::{sample_uniform, dijkstra::DijkstraPad};
 
@@ -208,37 +209,18 @@ impl<T> Pool<T> {
 
     /// Checks if the adjacency graph is connected.
     pub fn is_adjacently_connected(&self) -> bool {
+        let mut progress = ProgressBar::with_draw_target(Some(self.nodes.len() as u64), ProgressDrawTarget::stdout());
         let mut nodes_partitions: PartitionVec<()> = partition_vec![(); self.nodes.len()];
         let node_count = self.nodes.len();
         for (i, node) in self.nodes.iter().enumerate() {
-            println!("Visited {}/{} ({} %)", i, node_count, (i as f64 / node_count as f64) * 100.0);
+            //println!("Visited {}/{} ({} %)", i, node_count, (i as f64 / node_count as f64) * 100.0);
             for neighbor in node.adjacencies.iter() {
                 nodes_partitions.union(node.id.0, neighbor.0);
             }
+            progress.inc(1);
         }
+        progress.finish_and_clear();
         nodes_partitions.amount_of_sets() == 1
-        /*
-        println!("Checking adjacently connected...");
-        if let Some(start) = self.nodes.first() {
-            let ids = self.nodes.iter().map(|n| n.id).collect::<HashSet<NodeId>>();
-            let mut frontier: Vec<NodeId> = Vec::new();
-            let mut visited: HashSet<NodeId> = HashSet::new();
-            frontier.push(start.id);
-            while let Some(node) = frontier.pop() {
-                {
-                    let vl = visited.len();
-                    let tl = ids.len();
-                    println!("Visited {}/{} ({}%)", vl, tl, vl as f64 / tl as f64 * 100.0);
-                }
-                visited.insert(node);
-                let new_chip = &(&self.neighborhood_of(node) - &visited) - &frontier.iter().cloned().collect::<HashSet<_>>();
-                frontier.extend(new_chip);
-            }
-
-            return ids == visited;
-        } else {
-            true
-        }*/
     }
 
     /// Links two adjacent nodes.
